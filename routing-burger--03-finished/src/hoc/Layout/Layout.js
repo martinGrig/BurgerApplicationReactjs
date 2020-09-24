@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import {connect} from 'react-redux';
 
 import Auxilary from '../Auxilary/Auxilary';
 import classes from './Layout.css';
@@ -23,8 +24,13 @@ class Layout extends Component {
     render () {
         return (
             <Auxilary>
-                <Toolbar drawerToggleClicked={this.sideDrawerToggleHandler} />
+                <Toolbar 
+                    isAuth={this.props.isAuthenticated}
+                    drawerToggleClicked={this.sideDrawerToggleHandler} 
+
+                />
                 <SideDrawer
+                    isAuth={this.props.isAuthenticated}
                     open={this.state.showSideDrawer}
                     closed={this.sideDrawerClosedHandler} />
                 <main className={classes.Content}>
@@ -35,4 +41,17 @@ class Layout extends Component {
     }
 }
 
-export default Layout;
+
+const mapStateToProps = state => {
+    return{
+        isAuthenticated: state.auth.token !== null
+    };
+}
+
+// const mapDispatchToProps = dispatch => {
+//     return{
+//         onFetchedOrders: (token) => dispatch(actions.fetchOrders(token))
+//     };
+// }
+
+export default connect(mapStateToProps)(Layout);

@@ -6,6 +6,7 @@ import Spinner from "../../../components/UI/Spinner/Spinner";
 import classes from "./ContactData.css";
 import axios from "../../../axios-orders";
 import withErrorHandler from '../../../hoc/withErrorHandler/withErrorHandler';
+import {updateObject, checkValidity} from '../../../shared/utility';
 import * as actions from '../../../store/actions/index';
 
 
@@ -109,8 +110,9 @@ class ContactData extends Component {
       ingredients: this.props.ings,
       price: this.props.price,
       orderData: formData,
+      userId: this.props.userId
     };
-    this.props.onOrderBurger(order);
+    this.props.onOrderBurger(order, this.props.token);
     // axios
     //   .post("/orders.json", order)
     //   .then((response) => {
@@ -122,36 +124,18 @@ class ContactData extends Component {
     //   });
   };
 
-  checkValidity(value, rules) {
-    let isValid = true;
-    if (!rules) return isValid;
-
-    if (rules.required) {
-      isValid = value.trim() !== "" && isValid;
-    }
-    // if(rules.minLenght){
-    //     isValid = value.lenght >= 6 && isValid;
-    // }
-    // if(rules.maxLenght){
-    //     isValid = value.lenght <= 6 && isValid;
-    // }
-    return isValid;
-  }
-
   inputChangedHandler = (event, inputIdentifier) => {
-    const updatedOrderForm = {
-      ...this.state.orderForm,
-    };
-    const updatedFormEllement = {
-      ...updatedOrderForm[inputIdentifier],
-    };
-    updatedFormEllement.value = event.target.value;
-    updatedFormEllement.valid = this.checkValidity(
-      updatedFormEllement.value,
-      updatedFormEllement.validation
-    );
-    updatedFormEllement.touched = true;
-    updatedOrderForm[inputIdentifier] = updatedFormEllement;
+    const updatedFormEllement = updateObject(this.state.orderForm[inputIdentifier], {
+      value: event.target.value,
+      valid: checkValidity(
+        event.target.value,
+        this.state.orderForm[inputIdentifier].validation
+      ),
+      touched: true
+    });
+    const updatedOrderForm = updateObject(this.state.orderForm, {
+      [inputIdentifier]: updatedFormEllement
+    });
 
     let formIsValid = true;
     for (let inputIdentifier in updatedOrderForm) {
@@ -205,13 +189,15 @@ const mapStateToProps = state => {
     return {
         ings: state.burgerBuilder.ingredients,
         price: state.burgerBuilder.totalPrice,
-        loading: state.order.loading
+        loading: state.order.loading,
+        token: state.auth.token,
+        userId: state.auth.userId
     }
 }
 
 const mapDispatchToProps = dispatch => {
   return{
-    onOrderBurger: (orderData) => dispatch(actions.purchaseBurger(orderData))
+    onOrderBurger: (orderData, token) => dispatch(actions.purchaseBurger(orderData, token))
   };
 }
 
